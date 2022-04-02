@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Lookup</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+P+One&display=swap" rel="stylesheet">
+</head>
+<body>
+    <label for="selector">
+        <select id="selector" onchange="get_data(this.value)">
+            <option value=""></option>
+        </select>
+      </label><br><br><br>
+    <table style="width:50%">
+        <tr>
+          <th>Student Name</th>
+          <th>Father Name</th>
+          <th>Age</th>
+        </tr>
+        <tr>
+          <td><input id="std_name" type="text" required></td>
+          <td><input id="f_name" type="text" required></td>
+          <td><input id="age" type="number" required></td>
+        </tr>
+    </table>
+    <button onclick="submit_data()" id="submit_data">Update Data</button>
+    <button onclick="delete_data()" id="delete_data">Delete Data</button>
+</body>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Ubuntu&display=swap');
+
+    form {
+        position: fixed;
+        top: 25%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    input {
+        width: 250px;
+        outline: none;
+        padding: 10px;
+        border-radius: 5px;
+    }
+
+    #submit_data {
+        background-color: whitesmoke;
+        position: fixed;
+        top: 62%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        border-color: #000;
+        border-collapse: collapse;
+        border-spacing: 0;
+        width: 125px;
+        outline: none;
+        padding: 15px;
+        width: 69.6%;
+    }
+
+    #delete_data {
+        background-color: whitesmoke;
+        position: fixed;
+        top: 70%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        border-color: #000;
+        border-collapse: collapse;
+        border-spacing: 0;
+        width: 125px;
+        outline: none;
+        padding: 15px;
+        width: 69.6%;
+    }
+
+    body {
+        background-color: cornflowerblue;
+        text-align: center;
+        font-family: 'Ubuntu';
+    }
+
+    table{
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        border: #000;
+        border-collapse: collapse;
+        border-spacing: 0;
+    }
+
+        th, td{
+            padding: 10px 20px;
+            border: 1px solid #000;
+    }
+
+    select {
+        font-size: 13px;
+        padding: 10px 8px 10px 14px;
+        background: #fff;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        position: relative;
+        width: 200px;
+        text-align: center;
+    }
+</style>
+<script>
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "http://172.16.0.151:5000/get_ids", false);
+    xhr.send();
+    
+    var ids = eval(xhr.responseText);
+    console.log(typeof(ids))
+    console.log(ids)
+    var selector = document.getElementById('selector');
+    var id = 0;
+
+    ids.forEach((item) => {
+        var get_id = document.createElement("option");
+        var txt = document.createTextNode(item);
+        get_id.appendChild(txt);
+        selector.appendChild(get_id);
+        console.log(item)
+    })
+
+    function submit_data() {
+        var std_name = document.getElementById('std_name');
+        var f_name = document.getElementById('f_name');
+        var age = document.getElementById('age');
+        var id = document.getElementById('selector');
+
+        var data = `{"id": "${id.value}", "std_name": "${std_name.value}", "f_name": "${f_name.value}", "age": "${age.value}"}`;
+        console.log(data)
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "http://172.16.0.151:5000/update_data", false);
+        xhr.send(data);
+        
+        if (xhr.status == 200) {
+            alert("Data Updated")
+        } else {
+            alert("An Error Occured")
+        }
+    }
+
+    function delete_data() {
+        var id = document.getElementById('selector');
+
+        if (id.value == "") {
+            alert("Please Enter the ID")
+        } else {
+            var xhr = new XMLHttpRequest();
+            xhr.open("DELETE", "http://172.16.0.151:5000/delete_data", false);
+            xhr.send(id.value);
+
+            if (xhr.status == 200) {
+                alert("Data Deleted")
+            } else {
+                alert("An Error Occured")
+            }
+
+        window.location.reload();
+        }
+    }
+
+    function get_data(value) { 
+        var xhr = new XMLHttpRequest();
+        var formData = new FormData();
+        var id = value;
+        console.log(id);
+
+        formData.append("id", id);
+        xhr.open("POST", "http://172.16.0.151:5000/data_lookup", false);
+        xhr.send(formData);
+        console.log(xhr.responseText);
+
+        if ( id == "" ) {
+            document.getElementById('std_name').value = ""
+            document.getElementById("f_name").value = ""
+            document.getElementById("age").value = ""
+        } else {
+            document.getElementById('std_name').value = eval(xhr.responseText)[1]
+            document.getElementById("f_name").value = eval(xhr.responseText)[2]
+            document.getElementById("age").value = eval(xhr.responseText)[3]
+        }
+    }
+</script>
+</html>
